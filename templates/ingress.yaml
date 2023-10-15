@@ -1,0 +1,46 @@
+{{- if .Values.jockey.ingress }}
+
+{{- $releaseName := .Release.Name }}
+{{- $jockeyPort := int .Values.jockey.port }}
+{{- $host := .Values.jockey.ingressHost }}
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $releaseName }}
+spec:
+  rules:
+    - host: {{ $releaseName }}{{ $host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $releaseName }}
+                port:
+                  number: {{ $jockeyPort }}
+
+---
+
+{{- range $i, $e := until (int .Values.cluster.replica) }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $releaseName }}-{{ $i }}
+spec:
+  rules:
+    - host: {{ $releaseName }}-{{ $i }}{{ $host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $releaseName }}-{{ $i }}
+                port:
+                  number: {{ $jockeyPort }}
+---
+{{- end }}
+
+{{- end }}

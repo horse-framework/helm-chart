@@ -1,0 +1,73 @@
+{{ $releaseName := .Release.Name }}
+{{ $replicaCount := int .Values.cluster.replica }}
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ $releaseName }}
+  namespace: {{ .Values.deployment.namespace }}
+spec:
+  replicas: {{ .Values.cluster.replica }}
+  serviceName: {{ $releaseName }}
+  selector:
+    matchLabels:
+      app: {{ $releaseName }}
+  {{- if .Values.deployment.rollingUpdate }}
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      partition: 0
+  {{- end }}
+  template:
+    metadata:
+      labels:
+        app: {{ $releaseName }}
+    spec:
+      terminationGracePeriodSeconds: 5
+      {{- if .Values.deployment.nodeAffinity }}
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: "kubernetes.io/hostname"
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - {{ $releaseName }}
+      {{- end }}
+      containers:
+        - name: {{ $releaseName }}-container
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if ne $replicaCount 1 }}
+          env:
+            - name: HORSE_CLUSTER_TYPE
+              value: {{ .Values.cluster.clusterType }}
+            - name: HORSE_HOSTNAME
+              value: {{ $releaseName }}-INDEX
+            - name: HORSE_HOST_COUNT
+              value: "{{ .Values.cluster.replica }}"
+            - name: HORSE_HOST_START_INDEX
+              value: "0"
+          {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ $releaseName }}-config
+            - secretRef:
+                name: {{ $releaseName }}-secret
+          ports:
+            - containerPort: {{ .Values.server.port }}
+            - containerPort: {{ .Values.jockey.port }}
+          volumeMounts:
+            - name: {{ $releaseName }}-storage
+              mountPath: {{ .Values.mount.path }}
+  volumeClaimTemplates:
+  - metadata:
+      name: {{ $releaseName }}-storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      volumeMode: Filesystem
+      resources:
+        requests:
+          storage: {{ .Values.mount.storage }}

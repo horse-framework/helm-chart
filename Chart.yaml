@@ -1,0 +1,30 @@
+apiVersion: v2
+name: horse
+type: application
+appVersion: 6.6.4
+version: 6.6.4
+description: Horse is an open source general-purpose communication application that is designed for managing messages between applications in many cases (queues, channels, gateway, transactions, cache, rpc)
+maintainers:
+  - name: Mehmet Helvacıköylü
+  - name: Emre Hızlı
+sources:
+- https://github.com/horse-framework/horse-messaging
+annotations:
+  artifacthub.io/category: streaming-messaging
+  artifacthub.io/license: Apache-2.0
+  artifacthub.io/maintainers: |
+    - name: Mehmet Helvacıköylü
+      email: mhelvacikoylu@gmail.com
+    - name: Emre Hızlı
+      email: hizliemre@gmail.com
+  artifacthub.io/crds: |
+    - kind: Horse
+      version: v1
+      name: horse-messaging
+      displayName: Horse Messaging Server
+      description: Horse is an open source general-purpose communication application that is designed for managing messages between applications in many cases (queues, channels, gateway, transactions, cache, rpc)
+  artifacthub.io/links: |
+    - name: Github Project
+      url: https://github.com/horse-framework/horse-messaging
+    - name: Github Helm Chart
+      url: https://github.com/horse-framework/helm-chart

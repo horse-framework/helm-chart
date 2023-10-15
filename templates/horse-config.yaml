@@ -1,0 +1,37 @@
+{{- $releaseName := .Release.Name }}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $releaseName }}-config
+data:
+  HORSE_JOCKEY: "{{ .Values.jockey.enabled }}"
+  HORSE_DATA_PATH: {{ .Values.server.dataPath }}
+  HORSE_CHANNEL_LIMIT: "{{ .Values.server.channelLimit }}"
+  HORSE_CLIENT_LIMIT: "{{ .Values.server.clientLimit }}"
+  HORSE_QUEUE_LIMIT: "{{ .Values.server.queueLimit }}"
+  HORSE_ROUTER_LIMIT: "{{ .Values.server.routerLimit }}"
+  HORSE_CHANNEL_AUTO_DESTROY: "{{ .Values.channel.autoDestroy }}"
+  HORSE_CHANNEL_AUTO_CREATE: "{{ .Values.channel.autoCreate }}"
+  HORSE_CHANNEL_SEND_LATEST_MESSAGE: "{{ .Values.channel.sendLatestMessage }}"
+  HORSE_CHANNEL_SUBSCRIBER_LIMIT: "{{ .Values.channel.subscriberLimit }}"
+  HORSE_CACHE_MAX_KEYS: "{{ .Values.cache.maxKeys }}"
+  HORSE_CACHE_MAX_VALUE_SIZE: "{{ .Values.cache.maxValueSize }}"
+  HORSE_QUEUE_AUTO_CREATE: "{{ .Values.queue.autoCreate }}"
+  HORSE_QUEUE_TYPE: {{ .Values.queue.queueType }}
+  HORSE_QUEUE_ACK: {{ .Values.queue.queueAck }}
+  HORSE_QUEUE_ACK_TIMEOUT: "{{ .Values.queue.ackTimeout }}"
+  HORSE_QUEUE_AUTO_DESTROY: {{ .Values.queue.autoDestroy }}
+  HORSE_QUEUE_COMMIT_WHEN: {{ .Values.queue.commitWhen }}
+  HORSE_QUEUE_PUTBACK: {{ .Values.queue.putback }}
+  HORSE_QUEUE_PUTBACK_DELAY: "{{ .Values.queue.putbackDelay }}"
+  HORSE_QUEUE_CONSUMER_LIMIT: "{{ .Values.queue.consumerLimit }}"
+  HORSE_QUEUE_MESSAGE_LIMIT: "{{ .Values.queue.messageLimit }}"
+  HORSE_QUEUE_MSG_EXCEED_STRATEGY: {{ .Values.queue.msgExceedStrategy }}
+  HORSE_QUEUE_MESSAGE_SIZE_LIMIT: "{{ .Values.queue.messageSizeLimit }}"
+  HORSE_QUEUE_MESSAGE_TIMEOUT: "{{ .Values.queue.messageTimeout }};{{ .Values.queue.messageTimeoutStrategy }};{{ .Values.queue.messageTimeoutTarget }}"
+  HORSE_QUEUE_DELAY_BETWEEN_MSGS: "{{ .Values.queue.delayBetweenMessages }}"
+  HORSE_QUEUE_MESSAGE_ID_UNIQUE_CHECK: "{{ .Values.queue.messageIdUniqueCheck }}"
+  HORSE_QUEUE_USE_PERSISTENT: "{{ .Values.queue.usePersistentQueues }}"
+  HORSE_QUEUE_USE_MEMORY: "{{ .Values.queue.useMemoryQueues }}"
+  HORSE_QUEUE_DEFAULT_MANAGER: {{ .Values.queue.defaultQueueManager }}

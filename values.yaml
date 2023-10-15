@@ -1,0 +1,208 @@
+image:
+  repository: horseframework/messaging-server
+  tag: latest
+  pullPolicy: IfNotPresent
+
+deployment:
+  
+  ## Stateful set namespace
+  namespace: default
+
+  ## If enabled, each instance runs on different nodes.
+  ## If there are not available nodes, some instances run on same nodes.
+  ## It's not actual node affinity, it's topologySpreadConstraints option. 
+  nodeAffinity: true
+  
+  ## Enables rolling update with maxSurge:1 option 
+  rollingUpdate: true
+
+  resources:
+    requests:
+      cpu: unlimited
+      memory: unlimited
+    limits:
+      cpu: unlimited
+      memory: unlimited
+
+  environments: []
+
+## Persistence options for Queues and other options
+mount:
+
+  ## @param mount.path Storage path
+  path: "/etc/horse"
+
+  ## @param path.storage Storage disk space
+  storage: 1Gi
+
+## Horse Server clustering options
+cluster:
+
+  ## Replica count for horse server. Recommended values are 1,3,5.
+  replica: 3
+
+  nodeAffinity: true
+
+  ## @param cluster.clusterType Allowed values are "Reliable" and "Scaled"
+  ## Reliable, clients connect only main node and queues messages are replicated between nodes for reliability.
+  ## Scaled, Clients connects to different servers and messages but queues are individual for each server, it's recommended for channel and direct messaging operations.
+  clusterType: "Reliable"
+
+  ## Shared secret between nodes. You do not need to use this value in your clients or administration panel
+  ## It prevents misconnection between different horse server clusters. You can set different secret for each cluster.
+  sharedSecret: "c0f06028-952d-4ae1-b444-d5b84a3b95bb"
+
+
+## Horse Server general options
+server:
+  ## Horse Server protocol. Applications connect to the server on this port with Horse Protocol
+  port: 2626
+
+  ## The data path for each instance. All configurations and persistent queue data is stored here.
+  dataPath: "/etc/horse/data"
+
+  ## Allowed maximum channel limit in server
+  channelLimit: 0
+  
+  ## Allowed maximum concurrent client limit
+  clientLimit: 0
+
+  ## Allowed maximum queue limit in server
+  queueLimit: 0
+
+  ## Allowed maximum router limit in server
+  routerLimit: 0
+
+
+## Jockey Administration panel options
+jockey:
+
+  ## Enables Jockey administration panel
+  enabled: true
+
+  ## Enabled ingress for jockey administration
+  ingress: true
+
+  ## Jockey administration panel port number. It's HTTP Protocol.
+  port: 2627
+
+  ## Username for Jockey Administration panel
+  username: "admin"
+
+  ## Password for Jockey Administration panel
+  password: "password"
+  
+  ## Ingress host name. Pattern will be {release}{host}, so if you want a subdomain you should start with ".
+  ## If you want to customize your subdomain you can type -abc.foo.com and the endpoint will be release-abc.foo.com
+  ## There will be (Replica Count + 1) ingress endpoints. You can connect to all nodes or with just release name you can connect randomly one of them.
+  ingressHost: .horseframework.com
+
+
+## These options are server default queue options.
+## Each queue can have different options. But if you do not specify all options, default values will be used.
+queue:
+
+  ## @param queue.autoCreate Enabled auto queue creation with first push from any producer
+  autoCreate: true
+
+  ## @param queue.queueType Allowed types are "RoundRobin", "Push" or "Pull".
+  ## Round robin, sends each message only one consumer with round robin algorithm.
+  ## Push, sends each message to all consumers as soon as possible.
+  ## Pull, does not send any message any consumer until a consumer pulls. Each message is sent to one consumer.
+  queueType: "RoundRobin"
+
+  ## @param queue.queueAck Consumer Acknowledge decisions are "None", "JustRequest", "WaitForAcknowledge"
+  ## None, server does not care acknowledge of any consumed messages and bursts all messages to consumers.
+  ## JustRequest, server waits for acknowledge and if it's not ack'ed or negative ack'ed put back algorithm works.
+  ## But server does not wait for sending next message, before ack received s ends other messages.
+  ## WaitForAcknowledge, server waits acknowledge before sending another message to same client.
+  ## In order to prevent overload on the client you can use delay between messages option for None and JustRequest types.
+  queueAck: "WaitForAcknowledge"
+
+  ## @param queue.ackTimeout Acknowledge timeout duration in seconds. If client does not send ack in specified duration, timeout action is proceed in server side.
+  ackTimeout: 30
+
+  ## @param queue.autoDestroy Queue auto destroy options are "Disabled", "Empty", "NoConsumers", "NoMessages"
+  ## Disabled, Server never destroys queue automatically.
+  ## Empty, Server destroys queue if there is no consumers and no active messages
+  ## NoConsumers, Server destroys queue if there is no active consumers. Even if there are some messages in queue, they will be deleted.
+  ## NoMessages, Server destroys queue if there is no messages in it. Even if there are some online consumers, they will be unsubscribed and queue will be destroyed.
+  autoDestroy: "Disabled"
+
+  ## @param queue.commitWhen Commit is about sending commit message to the producer after produce operation completed. Allowed values are "None", "AfterReceived", "AfterSent", "AfterAcknowledge"
+  ## None, server does not send any commit message to producer.
+  ## AfterReceived, server sends commit message to producer after message is received and saved
+  ## AfterSent, server sends commit message to producer after first consumed received the message
+  ## AfterAcknowledge, server sends commit message to producer after a consumer sends acknowledge for consume operation.
+  commitWhen: "AfterReceived"
+
+  ## @param queue.putback Allowed values are "No", "Regular", "Priority".
+  ## No, there is no putback option. If consumer fails and can't send ack for the message. Server do not take any action for it and try re-send it to another consumer as first message.
+  ## Regular, server puts message back to the queue as it was pushed at the time. If delay is defined, the push operation is completed after delay.
+  ## Proirity, it works like Regular mode and message is pushed back to the queue as priority message and it will be consumed first.
+  putback: "Regular"
+
+  ## @param queue.putbackDelay Value is in milliseconds.
+  putbackDelay: 0
+
+  ## @param queue.consumerLimit Maximum concurrent client limit for each queue. 0 is unlimited.
+  consumerLimit: 0
+
+  ## @param queue.messageLimit Maximum message limit for each queue. 0 is unlimited.
+  messageLimit: 0
+
+  ## @param queue.msgExceedStrategy RejectNewMessage,  DeleteOldestMessage
+  msgExceedStrategy: "RejectNewMessage"
+
+  ## @param queue.messageSizeLimit Size limit for each message in bytes. 0 is unlimited.
+  messageSizeLimit: 0
+
+  ## @param queue.messageTimeout In minutes, if the message is not consumed in that duration, it will be deleted (or another action based on strategy) automatically.
+  messageTimeout: 0
+
+  ## @param queue.messageTimeoutStrategy "NoTimeout", "Delete", "PushQueue" and "PublishRouter" options are allowed.
+  ## If the strategy is PushQueue, the message will be pushed another queue specified in MessageTimeoutTarget.
+  ## If the strategy is PublishRouter, the message will be published to a router.
+  messageTimeoutStrategy: "Delete"
+
+  ## @param queue.messageTimeoutTarget Queue or Router name if strategy is PushQueue or PublishRouter
+  messageTimeoutTarget: ""
+
+  ## @param queue.delayBetweenMessages 0 is no delay. If you want to limit your consumers, you can set that value in milliseconds, each consumer never receive next message before this duration.
+  delayBetweenMessages: 0
+
+  ## @param queue.messageIdUniqueCheck Server-side validation for message id uniqueless. If enabled, it may affect queue performance.
+  messageIdUniqueCheck: false
+
+  ## @param queue.usePersistentQueues Enables persistent queues
+  usePersistentQueues: true
+
+  ## @param queue.useMemoryQueues Enables memory queues
+  useMemoryQueues: true
+
+  ## @param queue.defaultQueueManager If client does not specify, decides which manager will be used "Persistent" or "Memory"
+  defaultQueueManager: "Persistent"
+
+## Default Horse Channel options
+channel:
+
+  ## @param channel.autoDestroy if the value is larger than 1, server waits x seconds before destroy.
+  autoDestroy: true
+  
+  ## @param channel.autoCreate If enabled clients and create new channels automatically. Otherwise channels must be created with manual messages or from jockey
+  autoCreate: true
+  
+  ## @param channel.sendLatestMessage if value is 1, newly subscribed clients receive the latest published message right after susbcription
+  sendLatestMessage: true
+  
+  ## @param channel.subscriberLimit Subscriber limit for each channel
+  subscriberLimit: 0
+
+## Default Horse Cache options
+cache:
+
+  ## @param cache.maxKeys Maximum key count for cache
+  maxKeys: 0
+  
+  ## @param cache.maxValueSize Maximum value size for each key in bytes
+  maxValueSize: 0

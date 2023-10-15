@@ -1,0 +1,43 @@
+{{- $releaseName := .Release.Name }}
+{{- $horsePort := int .Values.server.port }}
+{{- $jockeyPort := int .Values.jockey.port }}
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $releaseName }}
+spec:
+  clusterIP: None
+  selector:
+    app: {{ $releaseName }}
+  ports:
+    - protocol: TCP
+      name: horse-messaging
+      port: 2626
+      targetPort: {{ $horsePort }}
+    - protocol: TCP
+      name: horse-jockey
+      port: 2627
+      targetPort: {{ $jockeyPort }}
+---
+{{- range $i, $e := until (int .Values.cluster.replica) }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $releaseName }}-{{ $i }}
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    statefulset.kubernetes.io/pod-name: {{ $releaseName }}-{{ $i }}
+  ports:
+    - protocol: TCP
+      name: horse-messaging
+      port: 2626
+      targetPort: {{ $horsePort }}
+    - protocol: TCP
+      name: horse-jockey
+      port: 2627
+      targetPort: {{ $jockeyPort }}
+---
+{{- end }}
