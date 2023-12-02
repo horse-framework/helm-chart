@@ -1,5 +1,6 @@
 {{- $releaseName := .Release.Name }}
 {{- $horsePort := int .Values.server.port }}
+{{- $websocketPort := int .Values.server.websocketPort }}
 {{- $jockeyPort := int .Values.jockey.port }}
 
 apiVersion: v1
@@ -7,7 +8,7 @@ kind: Service
 metadata:
   name: {{ $releaseName }}
 spec:
-  clusterIP: None
+  type: ClusterIP
   selector:
     app: {{ $releaseName }}
   ports:
@@ -19,6 +20,10 @@ spec:
       name: horse-jockey
       port: 2627
       targetPort: {{ $jockeyPort }}
+    - protocol: TCP
+      name: websocket
+      port: 2680
+      targetPort: {{ $websocketPort }}
 ---
 {{- range $i, $e := until (int .Values.cluster.replica) }}
 apiVersion: v1
@@ -26,7 +31,7 @@ kind: Service
 metadata:
   name: {{ $releaseName }}-{{ $i }}
 spec:
-  clusterIP: None
+  type: ClusterIP
   publishNotReadyAddresses: true
   selector:
     statefulset.kubernetes.io/pod-name: {{ $releaseName }}-{{ $i }}
@@ -39,5 +44,9 @@ spec:
       name: horse-jockey
       port: 2627
       targetPort: {{ $jockeyPort }}
+    - protocol: TCP
+      name: websocket
+      port: 2680
+      targetPort: {{ $websocketPort }}
 ---
 {{- end }}

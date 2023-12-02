@@ -35,3 +35,4 @@ data:
   HORSE_QUEUE_USE_PERSISTENT: "{{ .Values.queue.usePersistentQueues }}"
   HORSE_QUEUE_USE_MEMORY: "{{ .Values.queue.useMemoryQueues }}"
   HORSE_QUEUE_DEFAULT_MANAGER: {{ .Values.queue.defaultQueueManager }}
+  HORSE_OVER_WEBSOCKETS: "{{ .Values.server.websocketPort }}"

@@ -57,8 +57,9 @@ spec:
             - secretRef:
                 name: {{ $releaseName }}-secret
           ports:
-            - containerPort: {{ .Values.server.port }}
-            - containerPort: {{ .Values.jockey.port }}
+            - containerPort: 2626 # {{ .Values.server.port }}
+            - containerPort: 2627 # {{ .Values.server.websocketPort }}
+            - containerPort: 2680 # {{ .Values.jockey.port }}
           volumeMounts:
             - name: {{ $releaseName }}-storage
               mountPath: {{ .Values.mount.path }}

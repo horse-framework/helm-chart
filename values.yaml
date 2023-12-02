@@ -39,7 +39,7 @@ mount:
 cluster:
 
   ## Replica count for horse server. Recommended values are 1,3,5.
-  replica: 3
+  replica: 1
 
   nodeAffinity: true
 
@@ -50,7 +50,7 @@ cluster:
 
   ## Shared secret between nodes. You do not need to use this value in your clients or administration panel
   ## It prevents misconnection between different horse server clusters. You can set different secret for each cluster.
-  sharedSecret: "c0f06028-952d-4ae1-b444-d5b84a3b95bb"
+  sharedSecret: "c0f06028-952d-4ae1-b444-d5b44a3b95bb"
 
 
 ## Horse Server general options
@@ -72,6 +72,9 @@ server:
 
   ## Allowed maximum router limit in server
   routerLimit: 0
+
+  ## Enabled Horse Protocol over WebSocket protocol. Zero is disabled.
+  websocketPort: 2680
 
 
 ## Jockey Administration panel options
@@ -143,7 +146,7 @@ queue:
   putback: "Regular"
 
   ## @param queue.putbackDelay Value is in milliseconds.
-  putbackDelay: 0
+  putbackDelay: 15000
 
   ## @param queue.consumerLimit Maximum concurrent client limit for each queue. 0 is unlimited.
   consumerLimit: 0

@@ -1,16 +1,23 @@
 {{- if .Values.jockey.ingress }}
 
 {{- $releaseName := .Release.Name }}
+{{- $websocketPort := int .Values.server.websocketPort }}
 {{- $jockeyPort := int .Values.jockey.port }}
 {{- $host := .Values.jockey.ingressHost }}
 
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ $releaseName }}
+  name: {{ $releaseName }}-jockey-ingress
+  namespace: default
+  labels:
+    app: {{ $releaseName }}
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
+  ingressClassName: nginx
   rules:
-    - host: {{ $releaseName }}{{ $host }}
+    - host: {{ $releaseName }}-jockey{{ $host }} 
       http:
         paths:
           - path: /
@@ -27,10 +34,16 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ $releaseName }}-{{ $i }}
+  name: {{ $releaseName }}-jockey-{{ $i }}-ingress
+  namespace: default
+  labels:
+    app: {{ $releaseName }}
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
+  ingressClassName: nginx
   rules:
-    - host: {{ $releaseName }}-{{ $i }}{{ $host }}
+    - host: {{ $releaseName }}-jockey-{{ $i }}{{ $host }} 
       http:
         paths:
           - path: /
@@ -41,6 +54,58 @@ spec:
                 port:
                   number: {{ $jockeyPort }}
 ---
+{{- end }}
+
+{{- if ne $websocketPort 0 }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $releaseName }}-ingress
+  namespace: default
+  labels:
+    app: {{ $releaseName }}
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: {{ $releaseName }}{{ $host }} 
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $releaseName }}
+                port:
+                  number: {{ $websocketPort }}
+
+{{- range $i, $e := until (int .Values.cluster.replica) }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $releaseName }}-{{ $i }}-ingress
+  namespace: default
+  labels:
+    app: {{ $releaseName }}
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: {{ $releaseName }}-{{ $i }}{{ $host }} 
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $releaseName }}-{{ $i }}
+                port:
+                  number: {{ $websocketPort }}
+
+{{- end }}
 {{- end }}
 
 {{- end }}
