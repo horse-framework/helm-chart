@@ -4,35 +4,36 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ $releaseName }}-config
+  namespace: {{ include "horse.namespace" . | quote }}
 data:
-  HORSE_JOCKEY: "{{ .Values.jockey.enabled }}"
-  HORSE_DATA_PATH: {{ .Values.server.dataPath }}
-  HORSE_CHANNEL_LIMIT: "{{ .Values.server.channelLimit }}"
-  HORSE_CLIENT_LIMIT: "{{ .Values.server.clientLimit }}"
-  HORSE_QUEUE_LIMIT: "{{ .Values.server.queueLimit }}"
-  HORSE_ROUTER_LIMIT: "{{ .Values.server.routerLimit }}"
-  HORSE_CHANNEL_AUTO_DESTROY: "{{ .Values.channel.autoDestroy }}"
-  HORSE_CHANNEL_AUTO_CREATE: "{{ .Values.channel.autoCreate }}"
-  HORSE_CHANNEL_SEND_LATEST_MESSAGE: "{{ .Values.channel.sendLatestMessage }}"
-  HORSE_CHANNEL_SUBSCRIBER_LIMIT: "{{ .Values.channel.subscriberLimit }}"
-  HORSE_CACHE_MAX_KEYS: "{{ .Values.cache.maxKeys }}"
-  HORSE_CACHE_MAX_VALUE_SIZE: "{{ .Values.cache.maxValueSize }}"
-  HORSE_QUEUE_AUTO_CREATE: "{{ .Values.queue.autoCreate }}"
-  HORSE_QUEUE_TYPE: {{ .Values.queue.queueType }}
-  HORSE_QUEUE_ACK: {{ .Values.queue.queueAck }}
-  HORSE_QUEUE_ACK_TIMEOUT: "{{ .Values.queue.ackTimeout }}"
-  HORSE_QUEUE_AUTO_DESTROY: {{ .Values.queue.autoDestroy }}
-  HORSE_QUEUE_COMMIT_WHEN: {{ .Values.queue.commitWhen }}
-  HORSE_QUEUE_PUTBACK: {{ .Values.queue.putback }}
-  HORSE_QUEUE_PUTBACK_DELAY: "{{ .Values.queue.putbackDelay }}"
-  HORSE_QUEUE_CONSUMER_LIMIT: "{{ .Values.queue.consumerLimit }}"
-  HORSE_QUEUE_MESSAGE_LIMIT: "{{ .Values.queue.messageLimit }}"
-  HORSE_QUEUE_MSG_EXCEED_STRATEGY: {{ .Values.queue.msgExceedStrategy }}
-  HORSE_QUEUE_MESSAGE_SIZE_LIMIT: "{{ .Values.queue.messageSizeLimit }}"
-  HORSE_QUEUE_MESSAGE_TIMEOUT: "{{ .Values.queue.messageTimeout }};{{ .Values.queue.messageTimeoutStrategy }};{{ .Values.queue.messageTimeoutTarget }}"
-  HORSE_QUEUE_DELAY_BETWEEN_MSGS: "{{ .Values.queue.delayBetweenMessages }}"
-  HORSE_QUEUE_MESSAGE_ID_UNIQUE_CHECK: "{{ .Values.queue.messageIdUniqueCheck }}"
-  HORSE_QUEUE_USE_PERSISTENT: "{{ .Values.queue.usePersistentQueues }}"
-  HORSE_QUEUE_USE_MEMORY: "{{ .Values.queue.useMemoryQueues }}"
-  HORSE_QUEUE_DEFAULT_MANAGER: {{ .Values.queue.defaultQueueManager }}
-  HORSE_OVER_WEBSOCKETS: "{{ .Values.server.websocketPort }}"
+  HORSE_JOCKEY: {{ .Values.jockey.enabled | quote }}
+  HORSE_DATA_PATH: {{ include "horse.dataPath" . | quote }}
+  HORSE_CHANNEL_LIMIT: {{ .Values.server.channelLimit | quote }}
+  HORSE_CLIENT_LIMIT: {{ .Values.server.clientLimit | quote }}
+  HORSE_QUEUE_LIMIT: {{ .Values.server.queueLimit | quote }}
+  HORSE_ROUTER_LIMIT: {{ .Values.server.routerLimit | quote }}
+  HORSE_CHANNEL_AUTO_DESTROY: {{ .Values.channel.autoDestroy | quote }}
+  HORSE_CHANNEL_AUTO_CREATE: {{ .Values.channel.autoCreate | quote }}
+  HORSE_CHANNEL_SEND_LATEST_MESSAGE: {{ .Values.channel.sendLatestMessage | quote }}
+  HORSE_CHANNEL_SUBSCRIBER_LIMIT: {{ .Values.channel.subscriberLimit | quote }}
+  HORSE_CACHE_MAX_KEYS: {{ .Values.cache.maxKeys | quote }}
+  HORSE_CACHE_MAX_VALUE_SIZE: {{ .Values.cache.maxValueSize | quote }}
+  HORSE_QUEUE_AUTO_CREATE: {{ .Values.queue.autoCreate | quote }}
+  HORSE_QUEUE_TYPE: {{ .Values.queue.queueType | quote }}
+  HORSE_QUEUE_ACK: {{ .Values.queue.queueAck | quote }}
+  HORSE_QUEUE_ACK_TIMEOUT: {{ .Values.queue.ackTimeout | quote }}
+  HORSE_QUEUE_AUTO_DESTROY: {{ .Values.queue.autoDestroy | quote }}
+  HORSE_QUEUE_COMMIT_WHEN: {{ .Values.queue.commitWhen | quote }}
+  HORSE_QUEUE_PUTBACK: {{ .Values.queue.putback | quote }}
+  HORSE_QUEUE_PUTBACK_DELAY: {{ .Values.queue.putbackDelay | quote }}
+  HORSE_QUEUE_CONSUMER_LIMIT: {{ .Values.queue.consumerLimit | quote }}
+  HORSE_QUEUE_MESSAGE_LIMIT: {{ .Values.queue.messageLimit | quote }}
+  HORSE_QUEUE_MSG_EXCEED_STRATEGY: {{ .Values.queue.msgExceedStrategy | quote }}
+  HORSE_QUEUE_MESSAGE_SIZE_LIMIT: {{ .Values.queue.messageSizeLimit | quote }}
+  HORSE_QUEUE_MESSAGE_TIMEOUT: {{ printf "%v;%s;%s" .Values.queue.messageTimeout .Values.queue.messageTimeoutStrategy .Values.queue.messageTimeoutTarget | quote }}
+  HORSE_QUEUE_DELAY_BETWEEN_MSGS: {{ .Values.queue.delayBetweenMessages | quote }}
+  HORSE_QUEUE_MESSAGE_ID_UNIQUE_CHECK: {{ .Values.queue.messageIdUniqueCheck | quote }}
+  HORSE_QUEUE_USE_PERSISTENT: {{ .Values.queue.usePersistentQueues | quote }}
+  HORSE_QUEUE_USE_MEMORY: {{ .Values.queue.useMemoryQueues | quote }}
+  HORSE_QUEUE_DEFAULT_MANAGER: {{ .Values.queue.defaultQueueManager | quote }}
+  HORSE_OVER_WEBSOCKETS: {{ ternary "2680" "0" (ne (int .Values.server.websocketPort) 0) | quote }}

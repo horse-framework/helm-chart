@@ -1,30 +1,33 @@
 image:
   repository: horseframework/messaging-server
-  tag: latest
+  tag: "8.2.27"
+  ## Optional immutable image digest. When set, takes precedence over tag.
+  digest: ""
   pullPolicy: IfNotPresent
 
 deployment:
   
-  ## Stateful set namespace
-  namespace: default
+  ## Namespace for every chart resource. Empty uses helm --namespace.
+  ## An explicit namespace must already exist (or match --namespace --create-namespace).
+  namespace: ""
 
-  ## If enabled, each instance runs on different nodes.
-  ## If there are not available nodes, some instances run on same nodes.
-  ## It's not actual node affinity, it's topologySpreadConstraints option. 
+  ## Spread pods across eligible nodes with maxSkew: 1 and DoNotSchedule.
+  ## This is a topology spread constraint, not node affinity.
   nodeAffinity: true
   
-  ## Enables rolling update with maxSurge:1 option 
+  ## true: RollingUpdate; false: OnDelete (pods must be replaced manually).
   rollingUpdate: true
 
-  resources:
-    requests:
-      cpu: unlimited
-      memory: unlimited
-    limits:
-      cpu: unlimited
-      memory: unlimited
+  ## Include config/secret checksums in the pod template on helm upgrade.
+  ## Automatic pod replacement also requires rollingUpdate: true.
+  restartOnConfigChange: true
 
-  environments: []
+  ## Container CPU/memory settings. Empty maps impose no requests or limits
+  ## from this chart (namespace LimitRange defaults may still apply).
+  ## Use Kubernetes quantities, not the literal string "unlimited".
+  resources:
+    requests: {} # Example: { cpu: "100m", memory: "128Mi" }
+    limits: {}   # Example: { cpu: "500m", memory: "512Mi" }
 
 ## Persistence options for Queues and other options
 mount:
@@ -33,15 +36,16 @@ mount:
   path: "/etc/horse"
 
   ## @param path.storage Storage disk space
-  storage: 1Gi
+  storage: 4Gi
 
 ## Horse Server clustering options
 cluster:
 
+  ## Kubernetes DNS domain used by the headless Service's per-pod records.
+  dnsDomain: cluster.local
+
   ## Replica count for horse server. Recommended values are 1,3,5.
   replica: 1
-
-  nodeAffinity: true
 
   ## @param cluster.clusterType Allowed values are "Reliable" and "Scaled"
   ## Reliable, clients connect only main node and queues messages are replicated between nodes for reliability.
@@ -55,11 +59,13 @@ cluster:
 
 ## Horse Server general options
 server:
-  ## Horse Server protocol. Applications connect to the server on this port with Horse Protocol
+  ## Shared Horse Service port. Maps to the image's fixed listener on 2626.
+  ## Headless and per-pod Services retain internal ports 2626 and 2628.
   port: 2626
 
-  ## The data path for each instance. All configurations and persistent queue data is stored here.
-  dataPath: "/etc/horse/data"
+  ## Empty derives <mount.path>/data. An explicit absolute path must be inside
+  ## mount.path (or equal to it), so persistent data stays on the PVC.
+  dataPath: ""
 
   ## Allowed maximum channel limit in server
   channelLimit: 0
@@ -73,9 +79,14 @@ server:
   ## Allowed maximum router limit in server
   routerLimit: 0
 
-  ## Enabled Horse Protocol over WebSocket protocol. Zero is disabled.
+  ## WebSocket Service port. Maps to the fixed listener on 2680. Zero disables it.
   websocketPort: 2680
 
+## WebSocket ingress is independent of the Jockey ingress.
+websocket:
+  ingress: true
+  ## Empty reuses jockey.ingressHost for compatibility; set to use a separate domain.
+  ingressHost: ""
 
 ## Jockey Administration panel options
 jockey:
@@ -86,7 +97,7 @@ jockey:
   ## Enabled ingress for jockey administration
   ingress: true
 
-  ## Jockey administration panel port number. It's HTTP Protocol.
+  ## Jockey HTTP Service port. Maps to the image's fixed listener on 2627.
   port: 2627
 
   ## Username for Jockey Administration panel
@@ -98,7 +109,7 @@ jockey:
   ## Ingress host name. Pattern will be {release}{host}, so if you want a subdomain you should start with ".
   ## If you want to customize your subdomain you can type -abc.foo.com and the endpoint will be release-abc.foo.com
   ## There will be (Replica Count + 1) ingress endpoints. You can connect to all nodes or with just release name you can connect randomly one of them.
-  ingressHost: .horseframework.com
+  ingressHost: .yourdomain.com
 
 
 ## These options are server default queue options.

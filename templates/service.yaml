@@ -1,52 +1,32 @@
 {{- $releaseName := .Release.Name }}
-{{- $horsePort := int .Values.server.port }}
-{{- $websocketPort := int .Values.server.websocketPort }}
-{{- $jockeyPort := int .Values.jockey.port }}
 
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ $releaseName }}
+  namespace: {{ include "horse.namespace" . | quote }}
 spec:
   type: ClusterIP
   selector:
     app: {{ $releaseName }}
   ports:
-    - protocol: TCP
-      name: horse-messaging
-      port: 2626
-      targetPort: {{ $horsePort }}
-    - protocol: TCP
-      name: horse-jockey
-      port: 2627
-      targetPort: {{ $jockeyPort }}
-    - protocol: TCP
-      name: websocket
-      port: 2680
-      targetPort: {{ $websocketPort }}
----
+    {{- include "horse.servicePorts" (dict "root" . "perPod" false) | nindent 4 }}
 {{- range $i, $e := until (int .Values.cluster.replica) }}
+---
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ $releaseName }}-{{ $i }}
+  namespace: {{ include "horse.namespace" $ | quote }}
 spec:
   type: ClusterIP
   publishNotReadyAddresses: true
   selector:
     statefulset.kubernetes.io/pod-name: {{ $releaseName }}-{{ $i }}
   ports:
+    {{- include "horse.servicePorts" (dict "root" $ "perPod" true) | nindent 4 }}
     - protocol: TCP
-      name: horse-messaging
-      port: 2626
-      targetPort: {{ $horsePort }}
-    - protocol: TCP
-      name: horse-jockey
-      port: 2627
-      targetPort: {{ $jockeyPort }}
-    - protocol: TCP
-      name: websocket
-      port: 2680
-      targetPort: {{ $websocketPort }}
----
+      name: horse-node
+      port: 2628
+      targetPort: horse-node
 {{- end }}

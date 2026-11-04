@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "horse.headlessName" . }}
+  namespace: {{ include "horse.namespace" . | quote }}
+spec:
+  clusterIP: None
+  # Allow peer discovery before all nodes have finished starting.
+  publishNotReadyAddresses: true
+  selector:
+    app: {{ .Release.Name }}
+  ports:
+    - name: horse-messaging
+      protocol: TCP
+      port: 2626
+      targetPort: horse-messaging
+    - name: horse-node
+      protocol: TCP
+      port: 2628
+      targetPort: horse-node

@@ -1,8 +1,8 @@
 apiVersion: v2
 name: horse
 type: application
-appVersion: 6.6.4
-version: 6.6.4
+appVersion: "8.2.27"
+version: 7.0.0
 description: Horse is an open source general-purpose communication application that is designed for managing messages between applications in many cases (queues, channels, gateway, transactions, cache, rpc)
 maintainers:
   - name: Mehmet Helvacıköylü

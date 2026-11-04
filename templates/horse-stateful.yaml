@@ -5,21 +5,28 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ $releaseName }}
-  namespace: {{ .Values.deployment.namespace }}
+  namespace: {{ include "horse.namespace" . | quote }}
 spec:
   replicas: {{ .Values.cluster.replica }}
-  serviceName: {{ $releaseName }}
+  serviceName: {{ include "horse.headlessName" . }}
   selector:
     matchLabels:
       app: {{ $releaseName }}
-  {{- if .Values.deployment.rollingUpdate }}
   updateStrategy:
+    {{- if .Values.deployment.rollingUpdate }}
     type: RollingUpdate
     rollingUpdate:
       partition: 0
-  {{- end }}
+    {{- else }}
+    type: OnDelete
+    {{- end }}
   template:
     metadata:
+      {{- if .Values.deployment.restartOnConfigChange }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/horse-config.yaml") . | sha256sum | quote }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum | quote }}
+      {{- end }}
       labels:
         app: {{ $releaseName }}
     spec:
@@ -38,31 +45,52 @@ spec:
       {{- end }}
       containers:
         - name: {{ $releaseName }}-container
-          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          image: {{ include "horse.image" . | quote }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- if ne $replicaCount 1 }}
+          {{- with .Values.deployment.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           env:
+            - name: HORSE_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            # Kubernetes expands the preceding variable at container startup.
+            # Horse compares HOSTNAME with peer names to exclude its own node.
+            - name: HOSTNAME
+              value: {{ printf "$(HORSE_POD_NAME).%s" (include "horse.podDnsSuffix" .) | quote }}
+            {{- if ne $replicaCount 1 }}
             - name: HORSE_CLUSTER_TYPE
-              value: {{ .Values.cluster.clusterType }}
+              value: {{ .Values.cluster.clusterType | quote }}
             - name: HORSE_HOSTNAME
-              value: {{ $releaseName }}-INDEX
+              value: {{ printf "%s-INDEX.%s" $releaseName (include "horse.podDnsSuffix" .) | quote }}
             - name: HORSE_HOST_COUNT
               value: "{{ .Values.cluster.replica }}"
             - name: HORSE_HOST_START_INDEX
               value: "0"
-          {{- end }}
+            {{- end }}
           envFrom:
             - configMapRef:
                 name: {{ $releaseName }}-config
             - secretRef:
                 name: {{ $releaseName }}-secret
           ports:
-            - containerPort: 2626 # {{ .Values.server.port }}
-            - containerPort: 2627 # {{ .Values.server.websocketPort }}
-            - containerPort: 2680 # {{ .Values.jockey.port }}
+            - name: horse-messaging
+              containerPort: 2626
+            - name: horse-node
+              containerPort: 2628
+            {{- if .Values.jockey.enabled }}
+            - name: horse-jockey
+              containerPort: 2627
+            {{- end }}
+            {{- if ne (int .Values.server.websocketPort) 0 }}
+            - name: websocket
+              containerPort: 2680
+            {{- end }}
           volumeMounts:
             - name: {{ $releaseName }}-storage
-              mountPath: {{ .Values.mount.path }}
+              mountPath: {{ include "horse.mountPath" . | quote }}
   volumeClaimTemplates:
   - metadata:
       name: {{ $releaseName }}-storage

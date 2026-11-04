@@ -1,0 +1,441 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Horse chart values",
+  "description": "Local-only values validation. Cross-field path containment is checked by Helm templates. Kubernetes still validates resource relationships and API objects.",
+  "type": "object",
+  "properties": {
+    "image": {
+      "type": "object",
+      "properties": {
+        "repository": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tag": {
+          "type": "string",
+          "minLength": 1
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^(sha256:[a-f0-9]{64})?$"
+        },
+        "pullPolicy": {
+          "type": "string",
+          "enum": [
+            "Always",
+            "IfNotPresent",
+            "Never"
+          ]
+        }
+      },
+      "required": [
+        "repository",
+        "tag",
+        "digest",
+        "pullPolicy"
+      ]
+    },
+    "deployment": {
+      "type": "object",
+      "properties": {
+        "namespace": {
+          "type": "string",
+          "maxLength": 63,
+          "pattern": "^([a-z0-9]([-a-z0-9]*[a-z0-9])?)?$"
+        },
+        "nodeAffinity": {
+          "type": "boolean"
+        },
+        "rollingUpdate": {
+          "type": "boolean"
+        },
+        "restartOnConfigChange": {
+          "type": "boolean"
+        },
+        "resources": {
+          "type": "object",
+          "properties": {
+            "requests": {
+              "$ref": "#/definitions/resourceList"
+            },
+            "limits": {
+              "$ref": "#/definitions/resourceList"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "namespace",
+        "nodeAffinity",
+        "rollingUpdate",
+        "restartOnConfigChange"
+      ]
+    },
+    "mount": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "storage": {
+          "$ref": "#/definitions/quantity"
+        }
+      },
+      "required": [
+        "path",
+        "storage"
+      ]
+    },
+    "cluster": {
+      "type": "object",
+      "properties": {
+        "dnsDomain": {
+          "type": "string",
+          "maxLength": 253,
+          "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$"
+        },
+        "replica": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        },
+        "clusterType": {
+          "type": "string",
+          "enum": [
+            "Reliable",
+            "Scaled"
+          ]
+        },
+        "sharedSecret": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "dnsDomain",
+        "replica",
+        "clusterType",
+        "sharedSecret"
+      ]
+    },
+    "server": {
+      "type": "object",
+      "properties": {
+        "port": {
+          "$ref": "#/definitions/port"
+        },
+        "dataPath": {
+          "type": "string",
+          "pattern": "^(/.*)?$",
+          "description": "Empty derives mount.path/data; explicit paths must stay within mount.path (validated by the template)."
+        },
+        "channelLimit": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        },
+        "clientLimit": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        },
+        "queueLimit": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        },
+        "routerLimit": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        },
+        "websocketPort": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        }
+      },
+      "required": [
+        "port",
+        "dataPath",
+        "channelLimit",
+        "clientLimit",
+        "queueLimit",
+        "routerLimit",
+        "websocketPort"
+      ]
+    },
+    "websocket": {
+      "type": "object",
+      "properties": {
+        "ingress": {
+          "type": "boolean"
+        },
+        "ingressHost": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "ingress",
+        "ingressHost"
+      ]
+    },
+    "jockey": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "ingress": {
+          "type": "boolean"
+        },
+        "port": {
+          "$ref": "#/definitions/port"
+        },
+        "username": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "ingressHost": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "enabled",
+        "ingress",
+        "port",
+        "username",
+        "password",
+        "ingressHost"
+      ]
+    },
+    "queue": {
+      "type": "object",
+      "properties": {
+        "autoCreate": {
+          "type": "boolean"
+        },
+        "queueType": {
+          "type": "string",
+          "enum": [
+            "RoundRobin",
+            "Push",
+            "Pull"
+          ]
+        },
+        "queueAck": {
+          "type": "string",
+          "enum": [
+            "None",
+            "JustRequest",
+            "WaitForAcknowledge"
+          ]
+        },
+        "ackTimeout": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        },
+        "autoDestroy": {
+          "type": "string",
+          "enum": [
+            "Disabled",
+            "Empty",
+            "NoConsumers",
+            "NoMessages"
+          ]
+        },
+        "commitWhen": {
+          "type": "string",
+          "enum": [
+            "None",
+            "AfterReceived",
+            "AfterSent",
+            "AfterAcknowledge"
+          ]
+        },
+        "putback": {
+          "type": "string",
+          "enum": [
+            "No",
+            "Regular",
+            "Priority"
+          ]
+        },
+        "putbackDelay": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        },
+        "consumerLimit": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        },
+        "messageLimit": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        },
+        "msgExceedStrategy": {
+          "type": "string",
+          "enum": [
+            "RejectNewMessage",
+            "DeleteOldestMessage"
+          ]
+        },
+        "messageSizeLimit": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        },
+        "messageTimeout": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        },
+        "messageTimeoutStrategy": {
+          "type": "string",
+          "enum": [
+            "NoTimeout",
+            "Delete",
+            "PushQueue",
+            "PublishRouter"
+          ]
+        },
+        "messageTimeoutTarget": {
+          "type": "string"
+        },
+        "delayBetweenMessages": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        },
+        "messageIdUniqueCheck": {
+          "type": "boolean"
+        },
+        "usePersistentQueues": {
+          "type": "boolean"
+        },
+        "useMemoryQueues": {
+          "type": "boolean"
+        },
+        "defaultQueueManager": {
+          "type": "string",
+          "enum": [
+            "Persistent",
+            "Memory"
+          ]
+        }
+      },
+      "required": [
+        "autoCreate",
+        "queueType",
+        "queueAck",
+        "ackTimeout",
+        "autoDestroy",
+        "commitWhen",
+        "putback",
+        "putbackDelay",
+        "consumerLimit",
+        "messageLimit",
+        "msgExceedStrategy",
+        "messageSizeLimit",
+        "messageTimeout",
+        "messageTimeoutStrategy",
+        "messageTimeoutTarget",
+        "delayBetweenMessages",
+        "messageIdUniqueCheck",
+        "usePersistentQueues",
+        "useMemoryQueues",
+        "defaultQueueManager"
+      ]
+    },
+    "channel": {
+      "type": "object",
+      "properties": {
+        "autoDestroy": {
+          "type": "boolean"
+        },
+        "autoCreate": {
+          "type": "boolean"
+        },
+        "sendLatestMessage": {
+          "type": "boolean"
+        },
+        "subscriberLimit": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        }
+      },
+      "required": [
+        "autoDestroy",
+        "autoCreate",
+        "sendLatestMessage",
+        "subscriberLimit"
+      ]
+    },
+    "cache": {
+      "type": "object",
+      "properties": {
+        "maxKeys": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        },
+        "maxValueSize": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        }
+      },
+      "required": [
+        "maxKeys",
+        "maxValueSize"
+      ]
+    }
+  },
+  "required": [
+    "image",
+    "deployment",
+    "mount",
+    "cluster",
+    "server",
+    "websocket",
+    "jockey",
+    "queue",
+    "channel",
+    "cache"
+  ],
+  "definitions": {
+    "port": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 65535
+    },
+    "quantity": {
+      "description": "Nonnegative Kubernetes quantity, e.g. 100m, 128Mi, 1Gi or 0.5. Omit an unset limit; unlimited is not a quantity.",
+      "anyOf": [
+        {
+          "type": "number",
+          "minimum": 0
+        },
+        {
+          "type": "string",
+          "pattern": "^\\+?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)([eE][+-]?[0-9]+|[numkMGTPE]|[KMGTPE]i)?$"
+        }
+      ]
+    },
+    "resourceList": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/quantity"
+      }
+    }
+  }
+}
