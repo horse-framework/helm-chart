@@ -1,6 +1,6 @@
 image:
   repository: horseframework/messaging-server
-  tag: "8.2.27"
+  tag: "8.3.0"
   ## Optional immutable image digest. When set, takes precedence over tag.
   digest: ""
   pullPolicy: IfNotPresent

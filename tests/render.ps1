@@ -129,7 +129,7 @@ try {
     }
     Assert-That ((Find-Resource $boundary StatefulSet).spec.replicas -eq 0) 'Scale-to-zero must remain valid'
     Assert-That (((Find-Resource $boundary Service review).spec.ports | Where-Object name -eq horse-messaging).port -eq 65535) 'Highest valid Service port rejected'
-    Assert-That ($container.image -eq 'horseframework/messaging-server:8.2.27') 'Image must be versioned'
+    Assert-That ($container.image -eq 'horseframework/messaging-server:8.3.0') 'Image must be versioned'
     Assert-That (($container.ports.containerPort | Sort-Object) -join ',' -eq '2626,2627,2628,2680') 'Fixed listeners'
     Assert-That ($null -eq $container.readinessProbe) 'Readiness must remain unchanged'
     Assert-That (@($container.resources.requests.PSObject.Properties).Count -eq 0) 'Default CPU/memory requests must be empty'
