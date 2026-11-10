@@ -1,5 +1,7 @@
 # Horse Messaging Server Helm Chart
 
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/horse)](https://artifacthub.io/packages/helm/horse/horse)
+
 [Horse](https://github.com/horse-framework/horse-messaging) is an open source,
 general-purpose messaging server for communication between applications:
 queues, channels, routers, gateway, transactions, cache and RPC.
